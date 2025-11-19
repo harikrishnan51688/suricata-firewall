@@ -17,6 +17,7 @@ jobs:
           echo "Runner Labels: $RUNNER_LABELS"
           uname -a
 
-      - name: Ping 
+      - name: Ping Google
         run: |
-          ping -t 10 google.com
+          echo "Pinging Google..."
+          ping -c 10 google.com
