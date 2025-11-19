@@ -77,7 +77,7 @@ def check_and_create_superuser():
     conn.close()
 
 initialize_db()
-check_and_create_superuser()
+# check_and_create_superuser()
 
 # Configuration
 SSH_CONFIG = {
