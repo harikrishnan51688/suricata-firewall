@@ -1,0 +1,33 @@
+name: Test Self-Hosted Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-runner:
+    name: Test Self Hosted Runner
+    runs-on: self-hosted
+
+    steps:
+      - name: Print basic runner info
+        run: |
+          echo "Runner Name: $RUNNER_NAME"
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Arch: $RUNNER_ARCH"
+          echo "Runner Labels: $RUNNER_LABELS"
+          uname -a
+
+      - name: Check working directory
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -lah
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run a simple test script
+        run: |
+          echo "Testing self-hosted runner..."
+          echo "Time: $(date)"
+          echo "Random number: $RANDOM"
+          echo "Self Hosted Runner Works!"
