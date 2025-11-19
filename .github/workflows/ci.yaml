@@ -19,5 +19,5 @@ jobs:
 
       - name: Ping Google
         run: |
-          echo "Pinging Google..."
-          ping -c 10 google.com
+          echo "Pinging local server..."
+          ping -c 10 10.21.232.1
