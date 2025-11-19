@@ -1,0 +1,32 @@
+name: Update suricata signatures
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - custom_local.rules        # ONLY trigger when this file is changed
+  workflow_dispatch:              # Allow manual run
+
+jobs:
+  update-rules:
+    name: Update Suricata rule
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if custom_local.rules exists
+        run: |
+          if [ ! -f custom_local.rules ]; then
+            echo "custom_local.rules not found!"
+            exit 1
+          fi
+
+      - name: Upload updated rules to local API
+        run: |
+          echo "Uploading custom_local.rules to API..."
+          curl -X POST "http://localhost:8000/upload-rules" \
+            -H "Content-Type: multipart/form-data" \
+            -F "file=@custom_local.rules"

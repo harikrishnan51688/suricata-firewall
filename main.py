@@ -28,7 +28,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
-print(os.getenv("REMOTE_FILE"))
 # Database setup
 DATABASE_URL = "sqlite:///./users.db"
 
@@ -85,7 +84,7 @@ SSH_CONFIG = {
     "host": "10.21.232.1",
     "username": "admin",
     "key_file": os.getenv("KEY_FILE"),
-    "remote_file": os.getenv("REMOTE_FILE")
+    "remote_file": "/var/lib/suricata/rules/custom.rules"
 }
 
 
@@ -232,27 +231,121 @@ def append_rules_to_remote(content: str) -> dict:
         if ssh:
             ssh.close()
 
+# @app.post("/upload-rules")
+# async def upload_rules(file: UploadFile = File(...), username: str = Depends(verify_token)):
+#     """
+#     Upload a Suricata rules file and append its content to the remote server.
+#     """
+
+#     # validate user role is admin
+#     user = get_user_by_username(username)
+#     if not user or user.get("role") != "admin":
+#         raise HTTPException(
+#             status_code=403,
+#             detail="Operation not permitted. Admin access required."
+#         )
+    
+#     # validate user role is admin
+#     user = get_user_by_username(username)
+#     if not user or user.get("role") != "admin":
+#         raise HTTPException(
+#             status_code=403,
+#             detail="Operation not permitted. Admin access required."
+#         )
+    
+#     # Validate file extension
+#     if not file.filename.endswith('.rules'):
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Invalid file type. Only .rules files are accepted."
+#         )
+    
+#     try:
+#         # Read the uploaded file content
+#         content = await file.read()
+#         content_str = content.decode('utf-8')
+        
+#         # Validate content is not empty
+#         if not content_str.strip():
+#             raise HTTPException(
+#                 status_code=400,
+#                 detail="Uploaded file is empty.")
+        
+#         # Ensure content ends with newline
+#         if not content_str.endswith('\n'):
+#             content_str += '\n'
+        
+#         # Append to remote file
+#         result = append_rules_to_remote(content_str)
+        
+#         return JSONResponse(
+#             status_code=200,
+#             content={
+#                 "message": "Rules appended successfully",
+#                 "filename": file.filename,
+#                 "bytes_written": result["bytes_written"],
+#                 "remote_file": result["remote_file"]
+#             })
+        
+#     except UnicodeDecodeError:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="File encoding error. Please ensure the file is UTF-8 encoded."
+#         )
+#     except Exception as e:
+#         logger.error(f"Error processing upload: {str(e)}")
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"Failed to append rules: {str(e)}"
+#         )
+
+@app.post("/append-rules-text")
+async def append_rules_text(rules: str, username: str = Depends(verify_token)):
+    """
+    Append rules content directly as text (alternative to file upload).
+    """
+    try:
+        # validate user role is admin
+        user = get_user_by_username(username)
+        if not user or user.get("role") != "admin":
+            raise HTTPException(
+                status_code=403,
+                detail="Operation not permitted. Admin access required."
+            )
+        
+        # Validate content is not empty
+        if not rules.strip():
+            raise HTTPException(status_code=400, detail="Rules content is empty.")
+        
+        # Ensure content ends with newline
+        if not rules.endswith('\n'):
+            rules += '\n'
+        
+        # Append to remote file
+        result = append_rules_to_remote(rules)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Rules appended successfully",
+                "bytes_written": result["bytes_written"],
+                "remote_file": result["remote_file"]
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error processing text rules: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to append rules: {str(e)}"
+        )
+
+##### for automatic updation of rules
 @app.post("/upload-rules")
-async def upload_rules(file: UploadFile = File(...), username: str = Depends(verify_token)):
+async def upload_rules(file: UploadFile = File(...)):
     """
     Upload a Suricata rules file and append its content to the remote server.
     """
-
-    # validate user role is admin
-    user = get_user_by_username(username)
-    if not user or user.get("role") != "admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Operation not permitted. Admin access required."
-        )
-    
-    # validate user role is admin
-    user = get_user_by_username(username)
-    if not user or user.get("role") != "admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Operation not permitted. Admin access required."
-        )
     
     # Validate file extension
     if not file.filename.endswith('.rules'):
@@ -300,47 +393,7 @@ async def upload_rules(file: UploadFile = File(...), username: str = Depends(ver
             detail=f"Failed to append rules: {str(e)}"
         )
 
-@app.post("/append-rules-text")
-async def append_rules_text(rules: str, username: str = Depends(verify_token)):
-    """
-    Append rules content directly as text (alternative to file upload).
-    """
-    try:
-        # validate user role is admin
-        user = get_user_by_username(username)
-        if not user or user.get("role") != "admin":
-            raise HTTPException(
-                status_code=403,
-                detail="Operation not permitted. Admin access required."
-            )
-        
-        # Validate content is not empty
-        if not rules.strip():
-            raise HTTPException(status_code=400, detail="Rules content is empty.")
-        
-        # Ensure content ends with newline
-        if not rules.endswith('\n'):
-            rules += '\n'
-        
-        # Append to remote file
-        result = append_rules_to_remote(rules)
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                "message": "Rules appended successfully",
-                "bytes_written": result["bytes_written"],
-                "remote_file": result["remote_file"]
-            }
-        )
-        
-    except Exception as e:
-        logger.error(f"Error processing text rules: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to append rules: {str(e)}"
-        )
-
+#####
 @app.get("/")
 async def root():
     return {"message": "Suricata Rules Upload API"}
