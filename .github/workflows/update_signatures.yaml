@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - custom_local.rules        # ONLY trigger when this file is changed
-  workflow_dispatch:              # Allow manual run
+      - custom_local.rules
+  workflow_dispatch:
 
 jobs:
   update-rules:
@@ -16,6 +16,30 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Python environment
+        run: |
+          echo "Checking virtual environment..."
+          if [ ! -d "venv" ]; then
+            echo "Creating venv..."
+            python3 -m venv venv
+          fi
+
+          echo "Activating venv..."
+          source venv/bin/activate
+
+          echo "Installing requirements..."
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start FastAPI server
+        run: |
+          echo "Starting FastAPI server..."
+          source venv/bin/activate
+          # Start FastAPI in background and store PID
+          python main.py &
+          echo $! > fastapi.pid
+          sleep 5  # give server time to start
 
       - name: Check if custom_local.rules exists
         run: |
@@ -30,3 +54,11 @@ jobs:
           curl -X POST "http://localhost:8000/upload-rules" \
             -H "Content-Type: multipart/form-data" \
             -F "file=@custom_local.rules"
+
+      - name: Stop FastAPI server
+        run: |
+          echo "Stopping FastAPI server..."
+          if [ -f fastapi.pid ]; then
+            kill $(cat fastapi.pid) || true
+            rm fastapi.pid
+          fi
