@@ -17,17 +17,6 @@ jobs:
           echo "Runner Labels: $RUNNER_LABELS"
           uname -a
 
-      - name: Check working directory
+      - name: Ping 
         run: |
-          echo "Current directory: $(pwd)"
-          ls -lah
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run a simple test script
-        run: |
-          echo "Testing self-hosted runner..."
-          echo "Time: $(date)"
-          echo "Random number: $RANDOM"
-          echo "Self Hosted Runner Works!"
+          ping -t 10 google.com
