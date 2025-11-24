@@ -45,7 +45,7 @@ def fetch_all_rules():
     return all_rules
 
 
-def save_rules_to_file(rules, filename="suricata_rules.rule"):
+def save_rules_to_file(rules, filename="suricata_custom_rules.rules"):
     """Save all rules to one .rule file."""
     with open(filename, "w") as f:
         for rule in rules:
