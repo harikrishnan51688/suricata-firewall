@@ -5,6 +5,9 @@ on:
     - cron: "0 2 * * *"   # Every day at 2 AM
   workflow_dispatch:      # Manual trigger if needed
 
+permissions:
+  contents: write
+
 jobs:
   fetch_rules_job:
     runs-on: self-hosted   # Uses your self-hosted runner
