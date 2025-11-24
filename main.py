@@ -392,8 +392,8 @@ async def upload_rules(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Failed to append rules: {str(e)}"
         )
-
 #####
+
 @app.get("/")
 async def root():
     return {"message": "Suricata Rules Upload API"}

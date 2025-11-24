@@ -1,0 +1,37 @@
+name: Fetch Suricata Rules
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # Every day at 2 AM
+  workflow_dispatch:      # Manual trigger if needed
+
+jobs:
+  fetch_rules_job:
+    runs-on: self-hosted   # Uses your self-hosted runner
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          pip install requests
+
+      - name: Run Suricata Rule Fetcher
+        run: |
+          python fetch_rules.py
+
+      - name: Commit & Push Updated Rules
+        run: |
+          git config --global user.name "GitHub Automation"
+          git config --global user.email "actions@github.com"
+
+          git add suricata_rules.rule
+          git commit -m "Update Suricata rules - $(date)"
+          git push
+        continue-on-error: true   # Avoid failure when no changes exist
