@@ -10,6 +10,7 @@ import sqlite3
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from getpass import getpass
+from fastapi.responses import FileResponse, PlainTextResponse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -393,6 +394,17 @@ async def upload_rules(file: UploadFile = File(...)):
             detail=f"Failed to append rules: {str(e)}"
         )
 #####
+
+@app.get('/rule_bundle.tar.gz')
+def download_file():
+    file_path = 'custom_rules.tar.gz'
+    return FileResponse(path=file_path, filename="custom_rules.tar.gz", media_type="application/octet-stream")
+
+@app.get("/custom-rules", response_class=PlainTextResponse)
+def serve_rule_file():
+    with open("suricata_custom_rules.rules", "r") as f:
+        data = f.read()
+    return data
 
 @app.get("/")
 async def root():
